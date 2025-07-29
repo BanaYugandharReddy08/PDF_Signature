@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { PDFDocument } from "pdf-lib";
 import LoaderOverlay from "./LoaderOverlay";
 import { FiUploadCloud } from "react-icons/fi";
+import { PDFViewer } from './PdfPreview';
 import "../styles/MainPage.css"; // Import your styles
 
 const MAX_FILE_SIZE_MB = 10;
@@ -307,7 +308,7 @@ export default function MainPage() {
               tabIndex={0}
               aria-disabled={isBusy}
             >
-              <input {...getInputProps()} disabled={isBusy} />
+              <input {...getInputProps()} disabled={isBusy} id='file-upload'/>
               <FiUploadCloud className="upload-icon" aria-hidden="true" />
               <p>{isDragActive ? "Drop the PDF here…" : "Drag & drop a PDF or click to select"}</p>
               <p className="help" aria-live="polite">
@@ -327,13 +328,14 @@ export default function MainPage() {
               Selected File: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
             <div className="pdf-preview-container">
-              <iframe
+              {/* <iframe
                 src={`${filePreviewUrl}#toolbar=0`}
                 title={`Preview of ${file.name}`}
                 aria-label="PDF Preview"
                 style={{ width: "100%", height: 400, border: "1px solid #ccc", borderRadius: 6 }}
                 onError={onIframeError}
-              />
+              /> */}
+              <PDFViewer url={filePreviewUrl} />
             </div>
             <div className="actions">
               <button onClick={handleUpload} disabled={isBusy}>Sign PDF</button>
@@ -355,13 +357,14 @@ export default function MainPage() {
         {currentStep === "done" && signedUrl && (
           <>
             <div className="pdf-viewer">
-              <iframe
+              {/* <iframe
                 src={`${signedUrl}#toolbar=0`}
                 title="Signed PDF Preview"
                 aria-label="Signed PDF"
                 style={{ width: "100%", height: "80vh", border: "none" }}
                 onError={onIframeError}
-              />
+              /> */}
+              <PDFViewer url={signedUrl} />
             </div>
             <div className="actions">
               <button onClick={handleDownload}>Download PDF</button>
