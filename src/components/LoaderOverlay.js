@@ -6,7 +6,7 @@ function LoaderOverlay({ visible, message }) {
   return (
     <div
       className="loader-overlay"
-      role="alert"
+      role="alertdialog"
       aria-live="assertive"
       aria-modal="true"
       tabIndex={-1}

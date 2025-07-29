@@ -11,7 +11,7 @@ import "../styles/MainPage.css"; // Import your styles
 
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const SIGN_ENDPOINT = "https://pdf-signature-89wb.onrender.com" + "/sign"; // Update with your server URL
+const SIGN_ENDPOINT = "https://pdf-signature-89wb.onrender.com/sign"; // Update with your server URL
 
 const STEPS = ["Upload", "Preview", "Sign", "Done"];
 
@@ -220,12 +220,6 @@ export default function MainPage() {
     a.remove();
   }
 
-  // Handle iframe errors on PDF load
-  function onIframeError() {
-    toast.error("Failed to load PDF.");
-    resetAll();
-  }
-
   // Step to index mapping
   function stepIdx(step) {
     switch (step) {
@@ -335,7 +329,9 @@ export default function MainPage() {
                 style={{ width: "100%", height: 400, border: "1px solid #ccc", borderRadius: 6 }}
                 onError={onIframeError}
               /> */}
-              <PdfPreview url={filePreviewUrl} />
+              <PdfPreview document = {{
+                  url:{signedUrl} 
+              }}/>
             </div>
             <div className="actions">
               <button onClick={handleUpload} disabled={isBusy}>Sign PDF</button>
@@ -364,7 +360,9 @@ export default function MainPage() {
                 style={{ width: "100%", height: "80vh", border: "none" }}
                 onError={onIframeError}
               /> */}
-              <PdfPreview url={signedUrl} />
+              <PdfPreview document = {{
+                  url:{signedUrl} 
+              }}/>
             </div>
             <div className="actions">
               <button onClick={handleDownload}>Download PDF</button>
