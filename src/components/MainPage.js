@@ -321,7 +321,7 @@ export default function MainPage() {
             <p className="file-info" aria-live="polite">
               Selected File: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
             </p>
-            <div className="pdf-preview-container">
+            <div className="pdf-preview">
               {/* <iframe
                 src={`${filePreviewUrl}#toolbar=0`}
                 title={`Preview of ${file.name}`}
