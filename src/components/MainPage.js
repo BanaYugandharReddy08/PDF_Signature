@@ -1,21 +1,19 @@
-// src/App.js (or src/components/MainPage.js)
+
 import React, { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { PDFDocument } from "pdf-lib";
 import LoaderOverlay from "./LoaderOverlay";
 import { FiUploadCloud } from "react-icons/fi";
 import PdfPreview from "./PdfPreview";
+import { validateFile } from "./pdfValidation";
+import { signPdfFile } from "../serverCode/pdfService";
 import "../styles/MainPage.css";
 
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const SIGN_ENDPOINT = "https://pdf-signature-89wb.onrender.com/sign";
 
 const STEPS = ["Upload", "Preview", "Sign", "Done"];
-
-const isPdf = (file) => file.type === "application/pdf";
 
 export default function MainPage() {
   const [currentStep, setCurrentStep] = useState("upload");
@@ -28,7 +26,7 @@ export default function MainPage() {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [fileValidationMessage, setFileValidationMessage] = useState("");
 
-  // Cleanup object URLs on file/url changes or unmount
+  // Cleanup URLs on change/unmount
   useEffect(() => {
     return () => {
       if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
@@ -36,7 +34,7 @@ export default function MainPage() {
     };
   }, [filePreviewUrl, signedUrl]);
 
-  // Create and update file preview URL
+  // Generate preview URL on file change
   useEffect(() => {
     if (!file) {
       setFilePreviewUrl(null);
@@ -47,48 +45,7 @@ export default function MainPage() {
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  // Validate uploaded file
-  async function validateFile(pickedFile) {
-    if (!pickedFile) return false;
-
-    if (!isPdf(pickedFile)) {
-      const msg = "Only PDF files are allowed.";
-      setFileValidationMessage(msg);
-      toast.error(msg);
-      return false;
-    }
-
-    if (pickedFile.size > MAX_FILE_SIZE_BYTES) {
-      const msg = `File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`;
-      setFileValidationMessage(msg);
-      toast.error(msg);
-      return false;
-    }
-
-    try {
-      const arrayBuffer = await pickedFile.arrayBuffer();
-      await PDFDocument.load(arrayBuffer);
-    } catch (err) {
-      if (
-        err.message &&
-        (err.message.toLowerCase().includes("encrypted") || err.message.toLowerCase().includes("password"))
-      ) {
-        const msg = "File is password protected. Remove the password and try again.";
-        setFileValidationMessage(msg);
-        toast.warning(msg);
-        return false;
-      }
-      const msg = `Unable to read PDF: ${err.message}`;
-      setFileValidationMessage(msg);
-      toast.error(msg);
-      return false;
-    }
-
-    setFileValidationMessage("");
-    return true;
-  }
-
-  // onDrop handler
+  // Dropzone onDrop handler
   const onDrop = useCallback(
     async (acceptedFiles, rejectedFiles) => {
       if (loadingMessage || uploading) return;
@@ -105,13 +62,20 @@ export default function MainPage() {
 
       setUploading(true);
 
-      const isValid = await validateFile(pickedFile);
+      const { valid, message } = await validateFile(pickedFile);
 
-      if (!isValid) {
+      if (!valid) {
+        setFileValidationMessage(message);
+        if (message.includes("password")) {
+          toast.warning(message);
+        } else {
+          toast.error(message);
+        }
         setUploading(false);
         return;
       }
 
+      setFileValidationMessage("");
       setFile(pickedFile);
       setUploading(false);
       setCurrentStep("preview");
@@ -127,7 +91,7 @@ export default function MainPage() {
     disabled: loadingMessage !== "" || uploading,
   });
 
-  // Reset app to initial state
+  // Reset app state
   const resetAll = useCallback(() => {
     if (filePreviewUrl) URL.revokeObjectURL(filePreviewUrl);
     if (signedUrl) URL.revokeObjectURL(signedUrl);
@@ -140,7 +104,7 @@ export default function MainPage() {
     setCurrentStep("upload");
   }, [filePreviewUrl, signedUrl]);
 
-  // Helper for loading messages
+  // Helper to wrap async actions with loading message
   async function withLoading(message, fn) {
     setLoadingMessage(message);
     try {
@@ -150,7 +114,7 @@ export default function MainPage() {
     }
   }
 
-  // Handle the PDF signing
+  // Handle "Sign PDF" button click
   async function handleUpload() {
     if (!file) {
       toast.error("Please select a valid PDF before signing.");
@@ -161,31 +125,21 @@ export default function MainPage() {
 
     await withLoading("Signing document...", async () => {
       try {
-        const formData = new FormData();
-        formData.append("pdf", file);
+        const signedBlob = await signPdfFile(file);
 
-        const response = await fetch(SIGN_ENDPOINT, { method: "POST", body: formData });
-
-        if (!response.ok) {
-          toast.error("Signing failed. Please try again after some time.");
-          setCurrentStep("preview");
-          return;
-        }
-
-        const blob = await response.blob();
         setLoadingMessage("Loading signed document...");
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(signedBlob);
         setSignedUrl(url);
         setCurrentStep("done");
         toast.success("PDF signed successfully!");
       } catch (error) {
-        toast.error("Signing failed. Please try again after some time.");
+        toast.error("Signing failed. Please try again later.");
         setCurrentStep("preview");
       }
     });
   }
 
-  // Navigate back through steps
+  // Back button handler
   function handleBack() {
     if (loadingMessage || uploading) return;
     if (currentStep === "preview") setCurrentStep("upload");
@@ -193,7 +147,7 @@ export default function MainPage() {
     else if (currentStep === "done") setCurrentStep("signing");
   }
 
-  // Download signed PDF
+  // Download signed PDF file
   function handleDownload() {
     if (!signedUrl || !file) return;
     const a = document.createElement("a");
@@ -204,7 +158,22 @@ export default function MainPage() {
     a.remove();
   }
 
-  // Map step name to index
+  function stepLabelToKey(label) {
+    switch (label.toLowerCase()) {
+      case "upload":
+        return "upload";
+      case "preview":
+        return "preview";
+      case "sign":
+        return "signing";
+      case "done":
+        return "done";
+      default:
+        return "upload";
+    }
+  }
+
+  // Helper to get step index from currentStep string
   function stepIdx(step) {
     switch (step) {
       case "upload":
@@ -227,13 +196,13 @@ export default function MainPage() {
       <div className="container" role="main">
         <h1>PDF Signer</h1>
 
-        {/* Step Progress Bar */}
+        {/* Stepper */}
         <nav aria-label="Progress" className="stepper">
           {STEPS.map((label, idx) => {
             const isActive = idx === currentStepIndex;
             const isCompleted = idx < currentStepIndex;
-            const isDoneStep = currentStep === "done";
-            const isDisabled = isDoneStep && idx < currentStepIndex;
+            const isDone = currentStep === "done";
+            const isDisabled = isDone && idx < currentStepIndex;
 
             return (
               <React.Fragment key={label}>
@@ -243,8 +212,8 @@ export default function MainPage() {
                   }`}
                   role="button"
                   tabIndex={isDisabled ? -1 : 0}
-                  aria-current={isActive ? "step" : undefined}
                   aria-disabled={isDisabled || idx > currentStepIndex}
+                  aria-current={isActive ? "step" : undefined}
                   onClick={() => {
                     if (isDisabled) return;
                     if (idx < currentStepIndex) {
@@ -253,9 +222,9 @@ export default function MainPage() {
                       else if (idx === 2) setCurrentStep("signing");
                     }
                   }}
-                  onKeyDown={(e) => {
+                  onKeyDown={event => {
                     if (isDisabled) return;
-                    if ((e.key === "Enter" || e.key === " ") && idx < currentStepIndex) {
+                    if (["Enter", " "].includes(event.key) && idx < currentStepIndex) {
                       if (idx === 0) resetAll();
                       else if (idx === 1) setCurrentStep("preview");
                       else if (idx === 2) setCurrentStep("signing");
@@ -270,24 +239,21 @@ export default function MainPage() {
                   <div className="step-label">{label}</div>
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div
-                    className={`step-connector${isCompleted ? " completed" : ""}`}
-                    aria-hidden="true"
-                  />
+                  <div className={`step-connector${isCompleted ? " completed" : ""}`} aria-hidden="true" />
                 )}
               </React.Fragment>
             );
           })}
         </nav>
 
-        {/* Back Button */}
+        {/* Back button */}
         {currentStep !== "upload" && currentStep !== "done" && (
           <button className="back-button" onClick={handleBack} disabled={isBusy}>
             ← Back
           </button>
         )}
 
-        {/* Upload Step */}
+        {/* Upload step */}
         {currentStep === "upload" && (
           <>
             <div className="instructions" aria-live="polite" style={{ marginBottom: "1rem", fontWeight: "600" }}>
@@ -308,7 +274,7 @@ export default function MainPage() {
               tabIndex={0}
               aria-disabled={isBusy}
             >
-              <input {...getInputProps()} disabled={isBusy} id="file-upload" />
+              <input {...getInputProps()} id="file-upload" data-testid="file-upload" disabled={isBusy} />
               <FiUploadCloud className="upload-icon" aria-hidden="true" />
               <p>{isDragActive ? "Drop the PDF here…" : "Drag & drop a PDF or click to select"}</p>
               <p className="help" aria-live="polite">
@@ -321,7 +287,7 @@ export default function MainPage() {
           </>
         )}
 
-        {/* Preview Step */}
+        {/* Preview step */}
         {currentStep === "preview" && file && !uploading && (
           <>
             <p className="file-info" aria-live="polite">
@@ -345,15 +311,15 @@ export default function MainPage() {
           </>
         )}
 
-        {/* Signing Step */}
-        {(currentStep === "signing" || loadingMessage !== "") && (
+        {/* Signing step */}
+        {(currentStep === "signing" || loadingMessage) && (
           <LoaderOverlay visible={true} message={loadingMessage || "Signing document..."} />
         )}
 
-        {/* Done Step */}
+        {/* Done step */}
         {currentStep === "done" && signedUrl && (
           <>
-            <div className="pdf-viewer">
+            <div className="pdf-preview">
               <PdfPreview url={signedUrl} />
             </div>
             <div className="actions">
