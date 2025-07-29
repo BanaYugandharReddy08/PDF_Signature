@@ -10,7 +10,7 @@ import "../styles/MainPage.css"; // Import your styles
 
 const MAX_FILE_SIZE_MB = 10;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const SIGN_ENDPOINT = "http://localhost:4000/sign";
+const SIGN_ENDPOINT = "https://pdf-signature-89wb.onrender.com" + "/sign"; // Update with your server URL
 
 const STEPS = ["Upload", "Preview", "Sign", "Done"];
 
@@ -189,19 +189,6 @@ export default function MainPage() {
 
   setLoadingMessage("");
 }
-
-
-  // Handle server errors during upload/signing
-  function handleServerError(response) {
-    if (response.status === 413) {
-      toast.error(`Upload failed: File exceeds ${MAX_FILE_SIZE_MB} MB.`);
-    } else if (response.status === 415) {
-      toast.warning("Upload failed: PDF is password protected. Remove password.");
-    } else {
-      toast.error(`Upload failed: HTTP ${response.status || "Unknown error"}`);
-    }
-    resetAll();
-  }
 
   // Navigate back through steps
   function handleBack() {
