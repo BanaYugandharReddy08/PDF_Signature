@@ -2,6 +2,20 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## PDF.js Worker
+
+This app uses [`react-pdf`](https://github.com/wojtekmaj/react-pdf) to render PDF
+documents. The project ships with a local `pdf.worker.min.js` located in the
+`public/` folder. The worker must be loaded by `pdfjs` at runtime:
+
+```javascript
+import { pdfjs } from 'react-pdf';
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+```
+
+This initialization is performed both in `src/index.js` and `src/setupTests.js`
+so the worker is used during development, production and when running tests.
+
 ## Available Scripts
 
 In the project directory, you can run:
