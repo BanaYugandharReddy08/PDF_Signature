@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { PDFDocument } from "pdf-lib";
 import LoaderOverlay from "./LoaderOverlay";
 import { FiUploadCloud } from "react-icons/fi";
-import { PDFViewer } from './PdfPreview';
+import PdfPreview  from './PdfPreview';
 import "../styles/MainPage.css"; // Import your styles
 
 const MAX_FILE_SIZE_MB = 10;
@@ -335,7 +335,7 @@ export default function MainPage() {
                 style={{ width: "100%", height: 400, border: "1px solid #ccc", borderRadius: 6 }}
                 onError={onIframeError}
               /> */}
-              <PDFViewer url={filePreviewUrl} />
+              <PdfPreview url={filePreviewUrl} />
             </div>
             <div className="actions">
               <button onClick={handleUpload} disabled={isBusy}>Sign PDF</button>
@@ -364,7 +364,7 @@ export default function MainPage() {
                 style={{ width: "100%", height: "80vh", border: "none" }}
                 onError={onIframeError}
               /> */}
-              <PDFViewer url={signedUrl} />
+              <PdfPreview url={signedUrl} />
             </div>
             <div className="actions">
               <button onClick={handleDownload}>Download PDF</button>
