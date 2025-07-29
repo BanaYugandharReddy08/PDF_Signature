@@ -3,3 +3,7 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { pdfjs } from 'react-pdf';
+
+// Jest needs the worker path defined for react-pdf components
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
