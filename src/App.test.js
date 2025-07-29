@@ -134,12 +134,11 @@ describe("PDF Signing App - Basic Tests", () => {
 
     expect(await screen.findByText(/Uploading file/i)).toBeInTheDocument();
 
-    // Wait for signing completion (loader disappears and signed iframe appears)
+    // Wait for signing completion (loader disappears and PDF pages render)
     await waitFor(() => {
       expect(screen.queryByText(/Uploading file/i)).not.toBeInTheDocument();
+      expect(screen.getAllByTestId('pdf-page').length).toBeGreaterThan(0);
     });
-
-    expect(screen.getByTitle(/Signed PDF/i)).toBeInTheDocument();
 
     // Clean up mock fetch
     global.fetch.mockRestore();
