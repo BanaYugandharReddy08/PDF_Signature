@@ -329,9 +329,7 @@ export default function MainPage() {
                 style={{ width: "100%", height: 400, border: "1px solid #ccc", borderRadius: 6 }}
                 onError={onIframeError}
               /> */}
-              <PdfPreview document = {{
-                  url:{signedUrl} 
-              }}/>
+                <PdfPreview url={filePreviewUrl} />
             </div>
             <div className="actions">
               <button onClick={handleUpload} disabled={isBusy}>Sign PDF</button>
@@ -360,9 +358,7 @@ export default function MainPage() {
                 style={{ width: "100%", height: "80vh", border: "none" }}
                 onError={onIframeError}
               /> */}
-              <PdfPreview document = {{
-                  url:{signedUrl} 
-              }}/>
+                <PdfPreview url={signedUrl} />
             </div>
             <div className="actions">
               <button onClick={handleDownload}>Download PDF</button>
