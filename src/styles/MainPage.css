@@ -1,4 +1,5 @@
 /* ───────────── Global Styles ───────────── */
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
@@ -11,13 +12,15 @@ html, body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #222;
 }
 
-/* ───────────── Wrapper and Container ───────────── */
+/* ───────────── Layout Containers ───────────── */
+
 .main-wrapper {
   display: flex;
   justify-content: center;
-  align-items: center; /* Vertical centering on desktop/tablet */
+  align-items: center; /* Vertical center for desktop/tablet */
   min-height: 100vh;
   width: 100vw;
   padding: 1.5rem;
@@ -28,14 +31,14 @@ html, body {
   width: 100%;
   min-height: 500px;
   background: #fff;
-  padding: 2rem 2.5rem 2.5rem 2.5rem;
+  padding: 2rem 2.5rem 2.5rem;
   border-radius: 18px;
   box-shadow: 0 0 18px rgba(0, 0, 0, 0.1);
-  color: #222;
   outline: none;
 }
 
-/* Heading */
+/* ───────────── Heading ───────────── */
+
 h1 {
   text-align: center;
   margin-top: 0;
@@ -45,11 +48,12 @@ h1 {
 }
 
 /* ───────────── Dropzone ───────────── */
+
 .dropzone {
   border: 2.5px dashed #2196f3;
   padding: 3rem 1.5rem;
   text-align: center;
-  margin: 2.5rem 0 1rem 0;
+  margin: 2.5rem 0 1rem;
   cursor: pointer;
   border-radius: 12px;
   transition: background 0.2s ease-in-out;
@@ -77,23 +81,26 @@ h1 {
   cursor: not-allowed;
 }
 
-/* Help text under dropzone */
+/* ───────────── Help Text ───────────── */
+
 .help {
   font-size: 1em;
   color: #555;
   margin-top: 0.5rem;
 }
 
-/* ───────────── File Info Display ───────────── */
+/* ───────────── File Info ───────────── */
+
 .file-info {
-  margin: 0.7em 0 1em 0;
-  color: #222;
+  margin: 0.7em 0 1em;
   font-size: 1.08em;
   text-align: center;
   word-break: break-word;
+  color: #222;
 }
 
 /* ───────────── Buttons and Actions ───────────── */
+
 .actions {
   margin-top: 1.7rem;
   display: flex;
@@ -120,8 +127,7 @@ button:hover:not(:disabled) {
   background: #1976d2;
 }
 
-button:disabled,
-.disabled {
+button:disabled{
   background: #90caf9 !important;
   cursor: not-allowed !important;
   box-shadow: none !important;
@@ -137,26 +143,194 @@ button:disabled,
   }
 }
 
+/* ───────────── Stepper (Progress Bar) ───────────── */
+
+.stepper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.step {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #999;
+  max-width: 80px;
+  min-width: 70px;
+  outline: none;
+  z-index: 2;
+  user-select: none;
+  transition: color 0.3s, background-color 0.3s;
+}
+
+.step-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #d1d9ff;
+  color: #2176ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  font-size: 1.05rem;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.step-label {
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Active step styles */
+.step.active {
+  color: #2176ff;
+}
+
+.step.active .step-circle {
+  background: #2176ff;
+  color: white;
+}
+
+/* Completed step styles */
+.step.completed {
+  color: #4caf50;
+  opacity: 1; /* Ensure full opacity */
+}
+
+.step.completed .step-circle {
+  background: #4caf50;
+  color: white;
+}
+
+/* Disabled steps — visually completed but no interaction */
+.step.disabled {
+  color: #4caf50;
+  opacity: 0.7;
+  cursor: default;
+  pointer-events: none;
+  user-select: none;
+}
+
+.step.disabled .step-circle {
+  background: #81c784;
+  color: #1b5e20;
+}
+
+/* Remove hover/focus effects on disabled steps */
+.step.disabled:hover,
+.step.disabled:focus {
+  background: none;
+  box-shadow: none;
+  outline: none;
+}
+
+
+/* Connector lines between steps */
+.step-connector {
+  flex: 1 1 44px;
+  height: 3px;
+  background: #d1d9ff;
+  margin: 0 0.1rem 17px 0.1rem;
+  min-width: 30px;
+  max-width: 60px;
+  border-radius: 2px;
+  z-index: 1;
+  transition: background 0.3s;
+}
+
+.step-connector.completed {
+  background: #4caf50;
+}
+
+/* Hide stepper on small mobile devices (phones) */
+@media (max-width: 480px) {
+  .stepper {
+    display: none;
+  }
+}
+
+/* ───────────── Upload Icon and Drag Animation ───────────── */
+
+.upload-icon {
+  font-size: 4rem;
+  color: #2196f3;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease-in-out;
+}
+
+.drag-active .upload-icon {
+  animation: bounce 1.5s infinite;
+  color: #1976d2;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ───────────── History Toggle Button Row (optional) ───────────── */
+
+.history-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.toggle-history-btn {
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.15rem;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(33, 150, 243, 0.11);
+  transition: background 0.2s;
+  outline: none;
+}
+
+.toggle-history-btn:hover {
+  background: #1976d2;
+}
+
 /* ───────────── PDF Viewer ───────────── */
+
 .pdf-viewer {
-  margin: 2rem 0 1.5rem 0;
+  margin: 2rem 0 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow-x: auto;
   min-height: 80vh;
+  max-width: 100%;
 }
 
-/* Preview container for uploaded PDF */
+/* Preview container box for uploaded PDFs */
 .pdf-preview-container {
   margin: 1rem 0;
   border: 1px solid #ddd;
   border-radius: 6px;
   height: 400px;
   overflow: hidden;
+  max-width: 100%;
 }
 
 /* ───────────── Loader Overlay ───────────── */
+
 .loader-overlay {
   position: fixed;
   z-index: 2000;
@@ -207,6 +381,7 @@ button:disabled,
 }
 
 /* ───────────── Instructions Box ───────────── */
+
 .instructions {
   background-color: #e3f2fd;
   padding: 1rem 1.5rem;
@@ -218,13 +393,14 @@ button:disabled,
 }
 
 /* ───────────── Accessibility Fix ───────────── */
+
 .Toastify__close-button {
   min-width: 0 !important;
 }
 
 /* ───────────── Responsive Media Queries ───────────── */
 
-/* Mobile phones (up to 767px) */
+/* Mobile phones (under 768px) */
 @media (max-width: 767px) {
   .main-wrapper {
     align-items: flex-start;
@@ -240,6 +416,11 @@ button:disabled,
   }
   .pdf-viewer {
     min-height: 70vh;
+  }
+  button {
+    min-width: 110px;
+    font-size: 1em;
+    padding: 1em 2em;
   }
 }
 
@@ -264,124 +445,3 @@ button:disabled,
     min-height: 80vh;
   }
 }
-
-.stepper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 0; /* connector lines should be snug between steps */
-  flex-wrap: wrap;
-}
-.step {
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #999;
-  max-width: 80px;
-  min-width: 70px;
-  outline: none;
-  z-index: 2;
-}
-.step-circle {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #d1d9ff;
-  color: #2176ff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 700;
-  margin-bottom: 0.3rem;
-  transition: background-color 0.3s;
-  font-size: 1.05rem;
-}
-.step-label {
-  font-size: 0.9rem;
-  text-align: center;
-  user-select: none;
-}
-.step.active { color: #2176ff; }
-.step.active .step-circle { background: #2176ff; color: white; }
-.step.completed { color: #555; }
-.step.completed .step-circle { background: #4caf50; color: white; }
-.step[aria-disabled="true"] { cursor: default; color: #ccc; }
-.step[aria-disabled="true"] .step-circle { background: #eee; color: #ccc; }
-
-/* Step connector line */
-.step-connector {
-  flex: 1 1 44px;
-  /* Responsive sizing so connector fills space between circles */
-  height: 3px;
-  background: #d1d9ff;
-  margin: 0 0.1rem 17px 0.1rem;
-  min-width: 30px;
-  max-width: 60px;
-  border-radius: 2px;
-  z-index: 1;
-  transition: background 0.3s;
-}
-.step-connector.completed {
-  background: #4caf50;
-}
-/* On mobile, stack steps vertically, hide connectors */
-@media (max-width: 480px) {
-  .stepper {
-    flex-direction: column;
-  }
-  .step-connector {
-    display: none;
-  }
-}
-
-
-.upload-icon {
-  font-size: 4rem;
-  color: #2196f3;
-  margin-bottom: 1rem;
-  transition: transform 0.3s ease-in-out;
-}
-
-/* Bounce animation when drag is active */
-.drag-active .upload-icon {
-  animation: bounce 1.5s infinite;
-  color: #1976d2;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-
-.history-btn-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 1.2rem;
-}
-
-.toggle-history-btn {
-  background: #2196f3;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1.15rem;
-  border-radius: 7px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  box-shadow: 0 2px 5px rgba(33,150,243,0.11);
-  outline: none;
-}
-.toggle-history-btn:hover {
-  background: #1976d2;
-}
-
