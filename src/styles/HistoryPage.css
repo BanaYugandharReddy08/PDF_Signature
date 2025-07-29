@@ -1,0 +1,90 @@
+.history-container {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #e3f7fd;
+  border-radius: 10px;
+  color: #0d47a1;
+}
+
+.history-container h2 {
+  margin-top: 0;
+}
+
+.clear-history-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 0.5em 1.2em;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+.clear-history-btn:hover {
+  background: #1976d2;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.history-table th,
+.history-table td {
+  border: 1px solid #bcd7fa;
+  padding: 0.5em;
+  text-align: center;
+}
+.history-table a,
+.history-table button {
+  color: #2196f3;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.95em;
+}
+.history-table a:hover,
+.history-table button:hover {
+  color: #1976d2;
+}
+
+/* Preview Modal */
+.history-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  padding: 1rem;
+}
+
+.history-preview-content {
+  position: relative;
+  width: 90vw;
+  max-width: 900px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.close-preview-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  font-weight: bold;
+  padding: 0;
+  line-height: 1;
+  user-select: none;
+}
+.close-preview-btn:hover {
+  color: #000;
+}
