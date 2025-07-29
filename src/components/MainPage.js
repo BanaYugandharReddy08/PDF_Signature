@@ -16,22 +16,6 @@ const STEPS = ["Upload", "Preview", "Sign", "Done"];
 
 const isPdf = (file) => file.type === "application/pdf";
 
-
-// Helper: read history from localStorage or empty array
-function getStoredHistory() {
-  const stored = localStorage.getItem("signedPdfHistory");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return [];
-  }
-}
-// Helper: write history to localStorage
-function saveStoredHistory(history) {
-  localStorage.setItem("signedPdfHistory", JSON.stringify(history));
-}
-
 export default function MainPage() {
   // --- step state ---
   // currentStep is one of 'upload', 'preview', 'signing', 'done'
@@ -45,8 +29,6 @@ export default function MainPage() {
   const [loadingMessage, setLoadingMessage] = useState(""); // loader overlay message during signing
   const [fileValidationMessage, setFileValidationMessage] = useState("");
 
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyPreviewUrl, setHistoryPreviewUrl] = useState(null);
 
   // Cleanup object URLs on unmount or change
   useEffect(() => {
@@ -107,11 +89,6 @@ export default function MainPage() {
 
     setFileValidationMessage("");
     return true;
-  }
-
-  const viewHistory = () =>{
-    setShowHistory(!showHistory)
-    window.location.href = "/history";
   }
 
   // onDrop handler for react-dropzone
@@ -179,21 +156,20 @@ export default function MainPage() {
 
   // Handle signing the PDF
   async function handleUpload() {
-    if (!file) {
-      toast.error("Please select a valid PDF before signing.");
-      return;
-    }
+  if (!file) { toast.error("Please select a valid PDF before signing."); return; }
 
-    setCurrentStep("signing");
+  setCurrentStep("signing");
 
-    await withLoading("Signing document...", async () => {
+  await withLoading("Signing document...", async () => {
+    try {
       const formData = new FormData();
       formData.append("pdf", file);
 
       const response = await fetch(SIGN_ENDPOINT, { method: "POST", body: formData });
 
       if (!response.ok) {
-        handleServerError(response);
+        // Display toast and go back to preview
+        toast.error("Signing failed. Please try again after some time.");
         setCurrentStep("preview");
         return;
       }
@@ -204,10 +180,16 @@ export default function MainPage() {
       setSignedUrl(url);
       setCurrentStep("done");
       toast.success("PDF signed successfully!");
-    });
+    } catch (error) {
+      // For network/unknown errors:
+      toast.error("Signing failed. Please try again after some time.");
+      setCurrentStep("preview");
+    }
+  });
 
-    setLoadingMessage("");
-  }
+  setLoadingMessage("");
+}
+
 
   // Handle server errors during upload/signing
   function handleServerError(response) {
@@ -274,15 +256,6 @@ export default function MainPage() {
       <div className="container" role="main">
         {/* Title */}
         <h1>PDF Signer</h1>
-
-        <div className="history-btn-row">
-      <button
-        className="toggle-history-btn"
-        onClick={() => viewHistory()}
-      >
-        {"Show History"}
-      </button>
-    </div>
 
         {/* Step Progress Bar with Connectors */}
         <nav aria-label="Progress" className="stepper">

@@ -53,6 +53,32 @@ async function signPdf(inputPath, originalName) {
     throw new Error("PDF is password protected");
   }
 
+  // Load your logo image file
+  // Adjust the relative path accordingly
+  const logoPath = path.join(__dirname, "assets", "download.png");
+  const logoImageBytes = fs.readFileSync(logoPath);
+
+  // Detect image format and embed accordingly
+  let logoImage;
+  if (logoPath.toLowerCase().endsWith(".png")) {
+    logoImage = await pdfDoc.embedPng(logoImageBytes);
+  } else if (
+    logoPath.toLowerCase().endsWith(".jpg") ||
+    logoPath.toLowerCase().endsWith(".jpeg")
+  ) {
+    logoImage = await pdfDoc.embedJpg(logoImageBytes);
+  } else {
+    throw new Error("Unsupported logo image format. Use PNG or JPG.");
+  }
+
+  const logoDims = logoImage.scale(0.5); // scale logo to 50% size; adjust as needed
+  const logoTargetHeight = 40; // match height of 3 signature lines (16 to 44)
+  // Scale logo to target height
+  const { width: origW, height: origH } = logoImage;
+  const logoScale = logoTargetHeight / origH;
+  const logoWidth = origW * logoScale;
+  const logoHeight = logoTargetHeight;
+
   // Prepare signature text
   const now = new Date();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
@@ -61,28 +87,71 @@ async function signPdf(inputPath, originalName) {
 
   const signatureText = "Signed by Mock Server";
   const datetimeText = `${datetimeStr} (${timezone})`;
-  const locationText = "Location: Dublin, Ireland"; // Customize as needed
+  const locationText = "Location: Dublin, Ireland";
 
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontSize = 13;
   const margin = 18;
 
   pdfDoc.getPages().forEach((page) => {
-    const { width } = page.getSize();
+    const { width, height } = page.getSize();
 
     // Calculate widest signature line for alignment
-    const maxWidth = Math.max(
+    const maxTextWidth = Math.max(
       font.widthOfTextAtSize(signatureText, fontSize),
       font.widthOfTextAtSize(datetimeText, fontSize),
-      font.widthOfTextAtSize(locationText, fontSize)
+      font.widthOfTextAtSize(locationText, fontSize),
     );
 
-    const x = width - margin - maxWidth;
-    const yPositions = [44, 30, 16]; // Top to bottom for 3 lines
+    // Total width for logo + spacing + text
+    const spaceBetweenLogoAndText = 8;
+    const totalWidth = logoWidth + spaceBetweenLogoAndText + maxTextWidth;
 
-    page.drawText(signatureText, { x, y: yPositions[0], size: fontSize, font, color: rgb(0.12, 0.55, 0.11), opacity: 0.98 });
-    page.drawText(datetimeText, { x, y: yPositions[1], size: fontSize, font, color: rgb(0.12, 0.55, 0.11), opacity: 0.98 });
-    page.drawText(locationText, { x, y: yPositions[2], size: fontSize, font, color: rgb(0.12, 0.55, 0.11), opacity: 0.98 });
+    // X-position starts at right margin minus total width
+    const x = width - margin - totalWidth;
+
+    // Y positions for 3 lines of text on bottom right
+    const yPositions = [44, 30, 16];
+
+    // Draw the logo aligned vertically centered with the first line of text
+    // Adjust Y so that logo is vertically centered relative to text's first line (approx)
+    const logoY = yPositions[0] - logoHeight / 2 - fontSize / 2;
+
+    page.drawImage(logoImage, {
+      x,
+      y: logoY,
+      width: logoWidth,
+      height: logoHeight,
+      opacity: 0.95,
+    });
+
+    // Draw the three lines of signature text after the logo
+    const textX = x + logoWidth + spaceBetweenLogoAndText;
+
+    page.drawText(signatureText, {
+      x: textX,
+      y: yPositions[0],
+      size: fontSize,
+      font,
+      color: rgb(0.12, 0.55, 0.11),
+      opacity: 0.98,
+    });
+    page.drawText(datetimeText, {
+      x: textX,
+      y: yPositions[1],
+      size: fontSize,
+      font,
+      color: rgb(0.12, 0.55, 0.11),
+      opacity: 0.98,
+    });
+    page.drawText(locationText, {
+      x: textX,
+      y: yPositions[2],
+      size: fontSize,
+      font,
+      color: rgb(0.12, 0.55, 0.11),
+      opacity: 0.98,
+    });
   });
 
   const signedBytes = await pdfDoc.save();
